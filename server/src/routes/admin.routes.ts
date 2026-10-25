@@ -2,7 +2,7 @@ import archiver from 'archiver';
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { config, LANGUAGE_CODES } from '../config.js';
+import { config, LANGUAGE_CODES, SEED_CATEGORY_CODES } from '../config.js';
 import { db } from '../db.js';
 import { HttpError } from '../types.js';
 import type { Hop, ModelJob } from '../types.js';
@@ -83,6 +83,8 @@ adminRouter.post(
         modality: z.enum(['AUDIO', 'TEXT']),
         language: z.enum(LANGUAGE_CODES as [string, ...string[]]),
         composition: z.enum(['ALL_HUMAN', 'ALL_MODEL', 'MIXED']).optional(),
+        category: z.enum(SEED_CATEGORY_CODES as [string, ...string[]]).optional(),
+        // TEXT: the passage. AUDIO: optional transcript of the recording.
         text: z.string().max(20000).optional(),
         title: z.string().max(200).optional(),
       })
@@ -100,7 +102,8 @@ adminRouter.post(
       modality: body.modality,
       language: body.language,
       composition: body.composition,
-      text: body.text,
+      category: body.category,
+      text: body.text?.trim() ? body.text : undefined,
       audioBlobId,
       audioMime,
       audioDurationMs,
@@ -119,7 +122,7 @@ adminRouter.post(
 );
 
 interface ExportRow {
-  chain: { id: number; code: string; modality: string; language: string; composition: string; max_hops: number; status: string };
+  chain: { id: number; code: string; modality: string; language: string; composition: string; category: string; max_hops: number; status: string };
   hops: Array<Record<string, unknown>>;
 }
 
@@ -127,7 +130,7 @@ async function buildExport(includePii: boolean): Promise<{ generated_at: string;
   const participants = await db('participants')
     .select('id', 'name', 'email', 'gender', 'study_level', 'consent_audio', 'consent_text', 'preferred_language', 'created_at')
     .orderBy('id');
-  const chains = await db('chains').select('id', 'code', 'modality', 'language', 'composition', 'max_hops', 'status').orderBy('code');
+  const chains = await db('chains').select('id', 'code', 'modality', 'language', 'composition', 'category', 'max_hops', 'status').orderBy('code');
   const hops = await db('hops')
     .select(
       'id', 'chain_id', 'hop_index', 'parent_hop_id', 'contributor_type', 'participant_id', 'model_name', 'text_content',

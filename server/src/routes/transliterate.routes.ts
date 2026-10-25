@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { LANGUAGES } from '../config.js';
 import { HttpError } from '../types.js';
-import { requireParticipant, wrap } from '../middleware.js';
+import { requireParticipantOrAdmin, wrap } from '../middleware.js';
 
 /**
  * Proxies Google Input Tools transliteration (Latin keyboard -> selected
@@ -12,7 +12,7 @@ export const transliterateRouter = Router();
 
 transliterateRouter.post(
   '/',
-  requireParticipant,
+  requireParticipantOrAdmin,
   wrap(async (req, res) => {
     const body = z.object({ text: z.string().min(1).max(64), language: z.string() }).parse(req.body);
     const lang = LANGUAGES.find((l) => l.code === body.language);

@@ -93,7 +93,9 @@ export function pickAudioJobKind(
   return canWhisper ? 'WHISPER_AUDIO' : 'ALM_AUDIO';
 }
 
-export function seedCode(modality: 'AUDIO' | 'TEXT', language: string, n: number): string {
+/** Chain code, e.g. AUD-BN-001, or AUD-BN-POL-001 with a category identifier. */
+export function seedCode(modality: 'AUDIO' | 'TEXT', language: string, n: number, categoryId?: string): string {
   const prefix = modality === 'AUDIO' ? 'AUD' : 'TXT';
-  return `${prefix}-${language.toUpperCase()}-${String(n).padStart(3, '0')}`;
+  const parts = [prefix, language.toUpperCase(), ...(categoryId ? [categoryId.toUpperCase()] : []), String(n).padStart(3, '0')];
+  return parts.join('-');
 }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { config, LANGUAGES, LANGUAGE_CODES } from '../config.js';
+import { config, LANGUAGES, LANGUAGE_CODES, SEED_CATEGORIES } from '../config.js';
 import { HttpError } from '../types.js';
 import type { Participant } from '../types.js';
 import { requireParticipant, requestOrigin, wrap } from '../middleware.js';
@@ -41,6 +41,7 @@ authRouter.get('/config', (_req, res) => {
     google_client_id: config.googleClientId || null,
     dev_login: config.devLogin && !config.googleClientId,
     languages: LANGUAGES.map((l) => ({ code: l.code, name: l.name, transliterate: Boolean(l.itc) })),
+    categories: SEED_CATEGORIES,
     model_hops_enabled: providersConfigured(),
     limits: {
       max_listens: config.maxAudioListens,

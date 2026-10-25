@@ -33,9 +33,19 @@ export function requireParticipant(req: Request, _res: Response, next: NextFunct
   next();
 }
 
-export function requireAdmin(req: Request, _res: Response, next: NextFunction): void {
+function isAdmin(req: Request): boolean {
   const token = req.header('x-admin-token') ?? (req.query.token as string | undefined);
-  if (!config.adminToken || token !== config.adminToken) return next(new HttpError(401, 'Admin token required', 'ADMIN_ONLY'));
+  return Boolean(config.adminToken) && token === config.adminToken;
+}
+
+export function requireAdmin(req: Request, _res: Response, next: NextFunction): void {
+  if (!isAdmin(req)) return next(new HttpError(401, 'Admin token required', 'ADMIN_ONLY'));
+  next();
+}
+
+/** Signed-in participant, or the admin panel (x-admin-token). */
+export function requireParticipantOrAdmin(req: Request, _res: Response, next: NextFunction): void {
+  if (!req.participant && !isAdmin(req)) return next(new HttpError(401, 'Sign in first', 'UNAUTHENTICATED'));
   next();
 }
 

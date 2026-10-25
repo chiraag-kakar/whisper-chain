@@ -67,6 +67,8 @@ export interface AppConfig {
   google_client_id: string | null;
   dev_login: boolean;
   languages: Array<{ code: string; name: string; transliterate: boolean }>;
+  /** seed categories; `id` is the identifier embedded in chain codes (TXT-HI-POL-001) */
+  categories: Array<{ code: string; id: string; name: string }>;
   model_hops_enabled: boolean;
   limits: { max_listens: number; max_takes: number; max_audio_seconds: number; text_read_seconds: number };
 }

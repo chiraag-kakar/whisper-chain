@@ -90,7 +90,7 @@ async function abandon(): Promise<void> {
 
 <template>
   <div v-if="done" class="card">
-    <h1>Thank you! 🎉</h1>
+    <h1>Thank you for your kind cooperation. 🙏</h1>
     <p>Your recording has been added to the chain and will be passed to the next participant.</p>
     <RouterLink to="/"><button>Back to home</button></RouterLink>
   </div>

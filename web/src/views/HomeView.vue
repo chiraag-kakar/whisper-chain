@@ -70,7 +70,7 @@ async function toggleQr(): Promise<void> {
           <h2>🎧 Audio <span class="pill" :class="{ done: me.progress.AUDIO === 'DONE' }">{{ me.progress.AUDIO === 'DONE' ? 'done' : 'to do' }}</span></h2>
           <p class="muted">Listen to a recording (up to {{ session.config.value?.limits.max_listens }} times), then record what you remember in up to {{ session.config.value?.limits.max_takes }} takes, 1 minute max.</p>
           <p v-if="!p.consent_audio" class="muted">You did not consent to audio collection.</p>
-          <p v-else-if="me.progress.AUDIO === 'DONE'" class="ok">Thank you, completed.</p>
+          <p v-else-if="me.progress.AUDIO === 'DONE'" class="ok">Completed. Thank you for your kind cooperation.</p>
           <p v-else-if="me.availability.AUDIO === 0 && !me.active_task" class="muted">Nothing available in this language right now.</p>
           <button
             v-else
@@ -84,7 +84,7 @@ async function toggleQr(): Promise<void> {
           <h2>📖 Text <span class="pill" :class="{ done: me.progress.TEXT === 'DONE' }">{{ me.progress.TEXT === 'DONE' ? 'done' : 'to do' }}</span></h2>
           <p class="muted">Read a passage for up to {{ Math.round((session.config.value?.limits.text_read_seconds ?? 300) / 60) }} minutes, then write down what you remember.</p>
           <p v-if="!p.consent_text" class="muted">You did not consent to text collection.</p>
-          <p v-else-if="me.progress.TEXT === 'DONE'" class="ok">Thank you, completed.</p>
+          <p v-else-if="me.progress.TEXT === 'DONE'" class="ok">Completed. Thank you for your kind cooperation.</p>
           <p v-else-if="me.availability.TEXT === 0 && !me.active_task" class="muted">Nothing available in this language right now.</p>
           <button v-else :disabled="busy || Boolean(me.active_task)" @click="start('TEXT')">Start text task</button>
         </div>

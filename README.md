@@ -28,8 +28,13 @@ Limits above are env-configurable (`MAX_AUDIO_LISTENS`, `MAX_AUDIO_TAKES`, `MAX_
 
 ## 2. How chains grow (the "probabilistic hop")
 
-* Admins upload **seeds** (target: 50 audio + 50 text), coded `AUD-BN-001`, `TXT-HI-002`, … Each seed is
-  hop 0 of a chain.
+* Admins upload **seeds** (target: 50 audio + 50 text). A seed is the original recording / passage that
+  **starts a chain**: it is hop 0, the first participant reproduces it, and every later hop is compared back to it.
+  One seed = one chain.
+* Each seed has a **category** — `GENERIC` (`GEN`), `POLITICAL` (`POL`), `SARCASTIC` (`SAR`) — whose identifier
+  is part of the chain code: `AUD-BN-POL-001`, `TXT-HI-SAR-002`, … numbered per modality + language + category.
+  Chains created before categories existed keep their old code (`TXT-HI-001`) and are `GENERIC`. Add categories
+  in `SEED_CATEGORIES` (`server/src/config.ts`).
 * Every chain has a **composition**: `ALL_HUMAN`, `ALL_MODEL` or `MIXED`. Chosen explicitly at upload or
   randomly using `COMPOSITION_*` proportions.
 * Chains grow to `MAX_HOPS` (default 6) hops after the seed, then close.
@@ -78,16 +83,23 @@ Production-style single process: `pnpm build && pnpm start` (serves the SPA from
 
 ### Seeds
 
-Admin UI → "Add seed", or bulk import from a folder:
+Admin UI → **Add seed** (one at a time; the passage, and the optional transcript of an audio seed, have the same
+English → selected-language transliteration keyboard participants get), or **Batch import**: pick modality,
+language, category and composition, then select many `.txt` files (one passage each) or audio files (a `.txt`
+with the same name is attached as that recording's transcript). Text passages can also be pasted, separated by
+a line containing only `---`. Each file becomes its own chain, numbered in file-name order.
+
+Or bulk import from a folder with the CLI:
 
 ```
 seeds/
   text/bn/001.txt  002.txt …        one paragraph per file
-  audio/bn/001.wav 002.mp3 …        ≤ 60 s each (WAV recommended; mp3/ogg accepted)
+  audio/bn/001.wav 002.mp3 …        ≤ 60 s each (WAV recommended; mp3/ogg accepted); 001.txt = transcript
+  text/bn/political/003.txt …       optional category subfolder (generic | political | sarcastic)
 ```
 
 ```bash
-ADMIN_TOKEN=... pnpm seed:import ./seeds --base https://your-app.up.railway.app
+ADMIN_TOKEN=... pnpm seed:import ./seeds --base https://your-app.up.railway.app [--category SARCASTIC]
 ```
 
 ### Tests
@@ -122,7 +134,7 @@ Put the client id in `GOOGLE_CLIENT_ID`. No client secret is needed (ID-token fl
 
 ```
 participants   who; consent flags; resume_code
-chains         code, modality, language, composition, max_hops, status
+chains         code, modality, language, composition, category, max_hops, status
 hops           chain_id, hop_index (0 = seed), parent_hop_id, contributor_type (SEED|HUMAN|MODEL),
                participant_id | model_name, text_content, audio_blob_id, listen_count, takes_count,
                read_seconds, metadata (jsonb)

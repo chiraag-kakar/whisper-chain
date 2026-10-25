@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { config } from '../config.js';
+import { DEFAULT_SEED_CATEGORY, categoryId, config } from '../config.js';
 import { db } from '../db.js';
 import { HttpError } from '../types.js';
 import type { Chain, Composition, ContributorType, Hop, JobKind, Modality } from '../types.js';
@@ -10,12 +10,14 @@ const HOP_COLUMNS = [
   'text_content', 'audio_blob_id', 'audio_mime', 'audio_duration_ms', 'listen_count', 'takes_count',
   'read_seconds', 'metadata', 'created_at',
 ] as const;
-const CHAIN_COLUMNS = ['id', 'code', 'modality', 'language', 'composition', 'max_hops', 'status', 'created_at'] as const;
+const CHAIN_COLUMNS = ['id', 'code', 'modality', 'language', 'composition', 'category', 'max_hops', 'status', 'created_at'] as const;
 
 export interface NewSeedInput {
   modality: Modality;
   language: string;
   composition?: Composition;
+  /** GENERIC | POLITICAL | SARCASTIC … (see SEED_CATEGORIES) */
+  category?: string;
   text?: string;
   audioBlobId?: number;
   audioMime?: string;
@@ -67,20 +69,22 @@ export async function createSeed(input: NewSeedInput): Promise<{ chain: Chain; s
   if (input.modality === 'AUDIO' && !input.audioBlobId) throw new HttpError(400, 'AUDIO seed needs an audio file', 'VALIDATION');
 
   return db.transaction(async (trx) => {
-    // next sequence number per (modality, language)
+    // next sequence number per (modality, language, category)
     await trx.raw('LOCK TABLE chains IN SHARE ROW EXCLUSIVE MODE');
+    const category = input.category ?? DEFAULT_SEED_CATEGORY;
     const countRow = await trx('chains')
-      .where({ modality: input.modality, language: input.language })
+      .where({ modality: input.modality, language: input.language, category })
       .count<{ count: string }[]>('id as count')
       .first();
     const n = Number(countRow?.count ?? 0) + 1;
     const composition = input.composition ?? chooseComposition(config.composition);
     const [chain] = await trx('chains')
       .insert({
-        code: seedCode(input.modality, input.language, n),
+        code: seedCode(input.modality, input.language, n, categoryId(category)),
         modality: input.modality,
         language: input.language,
         composition,
+        category,
         max_hops: config.maxHops,
         status: 'OPEN',
       })
@@ -165,7 +169,7 @@ export interface ChainSummary extends Chain {
 export async function listChainSummaries(filters: { modality?: Modality; language?: string } = {}): Promise<ChainSummary[]> {
   const q = db('chains as c')
     .select(
-      'c.id', 'c.code', 'c.modality', 'c.language', 'c.composition', 'c.max_hops', 'c.status', 'c.created_at',
+      'c.id', 'c.code', 'c.modality', 'c.language', 'c.composition', 'c.category', 'c.max_hops', 'c.status', 'c.created_at',
       db.raw('(SELECT MAX(h.hop_index) FROM hops h WHERE h.chain_id = c.id) AS head_hop_index'),
       db.raw("(SELECT COUNT(*) FROM hops h WHERE h.chain_id = c.id AND h.contributor_type = 'HUMAN')::int AS human_hops"),
       db.raw("(SELECT COUNT(*) FROM hops h WHERE h.chain_id = c.id AND h.contributor_type = 'MODEL')::int AS model_hops"),

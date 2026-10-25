@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { post } from './api';
+import NeuralBackground from './components/NeuralBackground.vue';
 import { session } from './session';
 
 const route = useRoute();
@@ -14,6 +15,7 @@ async function logout(): Promise<void> {
 </script>
 
 <template>
+  <NeuralBackground />
   <div class="container">
     <header class="topbar">
       <RouterLink class="brand" to="/">Whisper Chain</RouterLink>

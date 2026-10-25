@@ -74,3 +74,20 @@ export const LANGUAGE_CODES = LANGUAGES.map((l) => l.code);
 export function languageName(code: string): string {
   return LANGUAGES.find((l) => l.code === code)?.name ?? code;
 }
+
+/**
+ * Seed categories (the "subfield" of a chain). `id` is the short identifier
+ * embedded in chain codes, e.g. TXT-HI-POL-001. Add a category here.
+ */
+export const SEED_CATEGORIES: ReadonlyArray<{ code: string; id: string; name: string }> = [
+  { code: 'GENERIC', id: 'GEN', name: 'Generic' },
+  { code: 'POLITICAL', id: 'POL', name: 'Political' },
+  { code: 'SARCASTIC', id: 'SAR', name: 'Sarcastic' },
+];
+
+export const SEED_CATEGORY_CODES = SEED_CATEGORIES.map((c) => c.code);
+export const DEFAULT_SEED_CATEGORY = 'GENERIC';
+
+export function categoryId(code: string): string {
+  return SEED_CATEGORIES.find((c) => c.code === code)?.id ?? code.slice(0, 3).toUpperCase();
+}

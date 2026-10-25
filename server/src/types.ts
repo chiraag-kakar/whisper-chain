@@ -28,6 +28,7 @@ export interface Chain {
   modality: Modality;
   language: string;
   composition: Composition;
+  category: string;
   max_hops: number;
   status: ChainStatus;
   created_at: Date;

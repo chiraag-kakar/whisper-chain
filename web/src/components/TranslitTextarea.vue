@@ -8,7 +8,7 @@ import { computed, ref, watch } from 'vue';
 import { post } from '@/api';
 import { session } from '@/session';
 
-const props = defineProps<{ modelValue: string; language: string }>();
+const props = defineProps<{ modelValue: string; language: string; headers?: Record<string, string> }>();
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>();
 
 const supported = computed(() => session.config.value?.languages.find((l) => l.code === props.language)?.transliterate ?? false);
@@ -41,7 +41,7 @@ async function onKeydown(e: KeyboardEvent): Promise<void> {
   const start = pos - word.length;
   busy.value = true;
   try {
-    const r = await post<{ candidates: string[] }>('/api/transliterate', { text: word, language: props.language });
+    const r = await post<{ candidates: string[] }>('/api/transliterate', { text: word, language: props.language }, props.headers);
     const top = r.candidates[0] ?? word;
     const after = props.modelValue.slice(pos);
     const next = `${before.slice(0, start)}${top} ${after}`;

@@ -104,4 +104,8 @@ describe('seedCode', () => {
     expect(seedCode('AUDIO', 'bn', 1)).toBe('AUD-BN-001');
     expect(seedCode('TEXT', 'hi', 42)).toBe('TXT-HI-042');
   });
+  it('embeds the category identifier when given', () => {
+    expect(seedCode('TEXT', 'hi', 7, 'POL')).toBe('TXT-HI-POL-007');
+    expect(seedCode('AUDIO', 'bn', 12, 'sar')).toBe('AUD-BN-SAR-012');
+  });
 });
