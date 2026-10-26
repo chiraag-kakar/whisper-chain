@@ -21,6 +21,8 @@ export const config = {
   adminToken: str('ADMIN_TOKEN', 'admin'),
   googleClientId: str('GOOGLE_CLIENT_ID'),
   devLogin: str('DEV_LOGIN', 'false') === 'true',
+  /** "Start fresh" on the login page: a new anonymous participant with its own resume code. */
+  openRegistration: str('OPEN_REGISTRATION', 'true') === 'true',
 
   maxHops: num('MAX_HOPS', 6),
   modelEveryN: num('MODEL_EVERY_N', 3),

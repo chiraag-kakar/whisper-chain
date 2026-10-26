@@ -66,6 +66,7 @@ export interface Participant {
 export interface AppConfig {
   google_client_id: string | null;
   dev_login: boolean;
+  open_registration: boolean;
   languages: Array<{ code: string; name: string; transliterate: boolean }>;
   /** seed categories; `id` is the identifier embedded in chain codes (TXT-HI-POL-001) */
   categories: Array<{ code: string; id: string; name: string }>;

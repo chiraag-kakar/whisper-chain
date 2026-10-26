@@ -49,6 +49,19 @@ async function resume(): Promise<void> {
   }
 }
 
+async function startFresh(): Promise<void> {
+  error.value = '';
+  busy.value = true;
+  try {
+    const r = await post<{ participant: Participant }>('/api/auth/new', {});
+    await finish(r.participant);
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    busy.value = false;
+  }
+}
+
 onMounted(async () => {
   await session.ensureLoaded();
   if (session.participant.value) return next();
@@ -105,6 +118,14 @@ onMounted(async () => {
     <input v-model="code" type="text" placeholder="ABCD-EFGH" maxlength="9" style="text-transform: uppercase" />
     <div class="row" style="margin-top: 12px">
       <button class="secondary" :disabled="busy || code.length < 8" @click="resume">Resume</button>
+    </div>
+  </div>
+
+  <div class="card" v-if="session.config.value?.open_registration">
+    <h2>New here, or lost your code?</h2>
+    <p class="muted">Start a new submission. You'll get a new resume code; your earlier contributions are kept.</p>
+    <div class="row" style="margin-top: 12px">
+      <button :disabled="busy" @click="startFresh">Start a new submission</button>
     </div>
   </div>
   <p v-if="error" class="error">{{ error }}</p>

@@ -86,6 +86,12 @@ export async function loginDev(email: string, name?: string): Promise<Participan
   return createParticipant({ google_sub: sub, email: email.toLowerCase(), name: name ?? null });
 }
 
+/** New anonymous participant, for people starting out or who lost their resume code. */
+export async function startFresh(): Promise<Participant> {
+  if (!config.openRegistration) throw new HttpError(400, 'New sign-ups are closed', 'REGISTRATION_CLOSED');
+  return createParticipant({});
+}
+
 export async function loginWithResumeCode(code: string): Promise<Participant> {
   const p = await db('participants').select(PARTICIPANT_COLUMNS).where({ resume_code: normalizeResumeCode(code) }).first<Participant>();
   if (!p) throw new HttpError(404, 'Unknown resume code', 'BAD_CODE');

@@ -5,7 +5,8 @@ import { HttpError } from '../types.js';
 import type { Participant } from '../types.js';
 import { requireParticipant, requestOrigin, wrap } from '../middleware.js';
 import {
-  SESSION_COOKIE, hasProfile, loginDev, loginWithGoogle, loginWithResumeCode, resumeQrDataUrl, signSession, updateProfile,
+  SESSION_COOKIE, hasProfile, loginDev, loginWithGoogle, loginWithResumeCode, resumeQrDataUrl, signSession, startFresh,
+  updateProfile,
 } from '../services/auth.service.js';
 import { availability, getActiveAssignment, hasSubmitted, toView } from '../services/assignment.service.js';
 import { providersConfigured } from '../services/model-worker.js';
@@ -40,6 +41,7 @@ authRouter.get('/config', (_req, res) => {
   res.json({
     google_client_id: config.googleClientId || null,
     dev_login: config.devLogin && !config.googleClientId,
+    open_registration: config.openRegistration,
     languages: LANGUAGES.map((l) => ({ code: l.code, name: l.name, transliterate: Boolean(l.itc) })),
     categories: SEED_CATEGORIES,
     model_hops_enabled: providersConfigured(),
@@ -77,6 +79,15 @@ authRouter.post(
   wrap(async (req, res) => {
     const body = z.object({ code: z.string().min(6).max(12) }).parse(req.body);
     const p = await loginWithResumeCode(body.code);
+    setSession(res, p);
+    res.json({ participant: publicParticipant(p) });
+  }),
+);
+
+authRouter.post(
+  '/auth/new',
+  wrap(async (_req, res) => {
+    const p = await startFresh();
     setSession(res, p);
     res.json({ participant: publicParticipant(p) });
   }),
